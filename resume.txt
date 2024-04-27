@@ -1,0 +1,8 @@
+
+•	Java/JavaScript/ Python/ C# (Unity)/C++/C/FORTRAN/HTML/CSS/JSON/XML
+•	SpringBoot/React/Overall API usage
+•	PostgresSQL/MongoDB/Minimal AWS
+•	Game Development/Information Retrieval/AI/ML/Data Science/CyberSecurity/Graphic Design/IoT/Environmental Technology
+•	Adobe Creative Cloud (Photoshop, Premiere Pro, After Effects, InDesign, etc.)
+selenium, keras, sklearn, nlp, pandas
+

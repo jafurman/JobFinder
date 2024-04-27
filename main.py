@@ -173,7 +173,7 @@ website_url = "https://www.glassdoor.com/Job/index.htm"
 options = webdriver.ChromeOptions()
 driver = webdriver.Chrome(options=options)
 
-jobs2 = searchJobName("Software Engineering Intern", "United States")
+jobs2 = searchJobName("python", "Remote")
 storeJobsInDB(jobs2)
 for job in jobs2:
     print(job)
