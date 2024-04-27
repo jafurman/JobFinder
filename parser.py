@@ -38,7 +38,7 @@ def open_unique_job_links():
                         db_source.jobDetails.insert_one(job)
                     except:
                         print("Empty listing")
-                        time.sleep(2)
+                        time.sleep(1.5)
                     driver.quit()  # Close the browser after processing the link
                 else:
                     print("Job link not found for job ID:", job['_id'])

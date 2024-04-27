@@ -87,8 +87,8 @@ if resume:
     job_descriptions = list(iterate_job_descriptions())
 
     # Define keywords to increase and decrease similarity score
-    keywords_increase = ["python", "machine learning", "API", "pandas", "sklearn", "unity", "HTML", "Adobe", "Photoshop", "Python", "analysis", "Mongo", "MongoDB", "ML", "machine", "leanring", "ai"]
-    keywords_decrease = ["sales", "customer service", "currently", "enrolled", "C++", "c++", "masters", "Masters", "university", ""]
+    keywords_increase = ["python", "machine learning", "API", "pandas", "sklearn", "unity", "HTML", "Adobe", "Photoshop", "Python", "analysis", "Mongo", "MongoDB", "ML", "machine", "leanring", "ai", "noSQL", "within", "California", "Washington", "Ca"]
+    keywords_decrease = ["sales", "enrolled", "C++", "c++", "masters", "Masters", "node", "pursing", "MS", "PhD", "M.S"]
 
     sorted_job_descriptions = compare_resume_to_job_descriptions(
         resume_tokens, job_descriptions, keywords_increase, keywords_decrease)

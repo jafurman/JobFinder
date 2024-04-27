@@ -123,6 +123,13 @@ def searchJobName(name, location):
         salaryFilterButton.click()
         time.sleep(2)
 
+        # max salary input
+        inputField = driver.find_element(By.XPATH, '//*[@id="maxSalaryInput"]')
+        for _ in range(4):
+            inputField.send_keys(Keys.BACKSPACE)
+        inputField.send_keys("80")
+        time.sleep(2)
+
         applyFilterButton = driver.find_element(By.XPATH, '//*[@id="app-navigation"]/div[3]/div[1]/div[2]/div[2]/div[4]/button')
         applyFilterButton.click()
 
@@ -173,8 +180,12 @@ website_url = "https://www.glassdoor.com/Job/index.htm"
 options = webdriver.ChromeOptions()
 driver = webdriver.Chrome(options=options)
 
-jobs2 = searchJobName("python", "Remote")
-storeJobsInDB(jobs2)
+jobs1 = searchJobName("Junior Game Dev", "United States")
+jobs2 = searchJobName("Python Programmer", "United States")
+jobs3 = searchJobName("Junior Data Analyst", "United States")
+
+storeList = jobs1 + jobs2 + jobs3
+storeJobsInDB(storeList)
 for job in jobs2:
     print(job)
 
