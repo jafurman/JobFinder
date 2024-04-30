@@ -1,66 +1,76 @@
+# Optimize imports
 import traceback
 import pymongo
+import spacy
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import spacy
 
+# Define constants
+RESUME_FILE_PATH = "resume.txt"
+KEYWORDS_INCREASE = ["python", "machine learning", "API", "pandas", "sklearn", "unity", "HTML", "Adobe", "Photoshop", "Python", "MongoDB", "ML", "ai", "noSQL", "California", "Washington"]
+KEYWORDS_DECREASE = ["sales", "enrolled", "C++", "c++", "masters", "Masters", "node", "pursing", "MS", "PhD", "M.S"]
+SKILL_WEIGHT = 2
 
-def connectDataBase():
+# Function to connect to the database
+def connect_to_database():
     try:
         client = pymongo.MongoClient(host="localhost", port=27017)
-        db = client.JobListings
-        return db
-    except Exception as error:
+        return client.JobListings
+    except Exception as e:
         traceback.print_exc()
-        print("Database not connected successfully.. rawr")
+        print("Failed to connect to the database.")
+        return None
 
 
-def preprocessText(text):
+# Function to preprocess text
+def preprocess_text(text):
     nlp = spacy.load("en_core_web_sm")
     doc = nlp(text)
     tokens = [token.lemma_ for token in doc if not token.is_stop and token.is_alpha]
     return " ".join(tokens)
 
-
-def resumeToString(fp):
+# Function to read resume file
+def read_resume(file_path):
     try:
-        with open(fp, 'r') as file:
-            resume_content = file.read()
-        return resume_content
+        with open(file_path, 'r') as file:
+            return file.read()
     except Exception as e:
         print(f"Error reading the resume file: {e}")
         return None
 
-
-def iterate_job_descriptions():
+# Function to iterate over job descriptions
+def iterate_job_descriptions(db):
     try:
-        db = connectDataBase()
-        if db is not None:
-            job_details_collection = db.jobDetails
-            for job in job_details_collection.find():
-                full_description = job.get('full_description')
-                if full_description:
-                    yield {
-                        'job_name': job.get('job'),
-                        'company': job.get('company'),
-                        'location': job.get('location'),
-                        'salary': job.get('salary'),
-                        'description': preprocessText(full_description),
-                        'job_link': job.get('job_link')
-                    }
-                else:
-                    print("No full description available for job ID:", job['_id'])
-    except Exception as error:
+        job_details_collection = db.jobDetails
+        for job in job_details_collection.find():
+            full_description = job.get('full_description')
+            if full_description:
+                yield {
+                    'job_name': job.get('job'),
+                    'company': job.get('company'),
+                    'location': job.get('location'),
+                    'salary': job.get('salary'),
+                    'description': preprocess_text(full_description),
+                    'job_link': job.get('job_link'),
+                    'skills': job.get('skills', [])  # Add skills list here
+                }
+            else:
+                print("No full description available for job ID:", job.get('_id'))
+    except Exception as e:
         traceback.print_exc()
-        print("Error while printing job descriptions..")
+        print("Error while iterating job descriptions.")
 
-
-def compare_resume_to_job_descriptions(resume_tokens, job_descriptions, keywords_increase, keywords_decrease):
+# Function to compare resume to job descriptions
+def compare_resume_to_job_descriptions(resume_tokens, job_descriptions):
     try:
         tfidf_vectorizer = TfidfVectorizer()
 
+        job_skills_tokens = [" ".join(job['skills']) for job in job_descriptions]
+        job_skills_tfidf = tfidf_vectorizer.fit_transform(job_skills_tokens)
+
         job_descriptions_tokens = [job['description'] for job in job_descriptions]
-        job_descriptions_tfidf = tfidf_vectorizer.fit_transform(job_descriptions_tokens)
+        job_descriptions_tfidf = tfidf_vectorizer.transform(job_descriptions_tokens)
+
         resume_tfidf = tfidf_vectorizer.transform([resume_tokens])
 
         similarity_scores = cosine_similarity(resume_tfidf, job_descriptions_tfidf)
@@ -68,39 +78,51 @@ def compare_resume_to_job_descriptions(resume_tokens, job_descriptions, keywords
         scores = similarity_scores[0, sorted_indices]
         sorted_job_descriptions = [job_descriptions[i] for i in sorted_indices]
 
-        # Keyword matching
-        for job in sorted_job_descriptions:
+        skills_similarity_scores = cosine_similarity(resume_tfidf, job_skills_tfidf)
+
+        for job, skill_similarity in zip(sorted_job_descriptions, skills_similarity_scores[0]):
             description_tokens = job['description'].split()
-            keyword_score_increase = sum(1 for keyword in keywords_increase if keyword in description_tokens)
-            keyword_score_decrease = sum(1 for keyword in keywords_decrease if keyword in description_tokens)
-            job['similarity_score'] = scores[sorted_job_descriptions.index(job)] + keyword_score_increase - keyword_score_decrease
+            keyword_score_increase = sum(1 for keyword in KEYWORDS_INCREASE if keyword in description_tokens)
+            keyword_score_decrease = sum(1 for keyword in KEYWORDS_DECREASE if keyword in description_tokens)
+
+            scaled_skill_similarity = skill_similarity * SKILL_WEIGHT
+            job['similarity_score'] = scores[sorted_job_descriptions.index(job)] + scaled_skill_similarity + keyword_score_increase - keyword_score_decrease
 
         return sorted_job_descriptions
     except Exception as e:
         traceback.print_exc()
         print("Error while comparing resume to job descriptions.")
 
-resume_fp = "resume.txt"
-resume = resumeToString(resume_fp)
-if resume:
-    resume_tokens = preprocessText(resume)
-    job_descriptions = list(iterate_job_descriptions())
+# Main script
+if __name__ == "__main__":
+    # Connect to the database
+    db = connect_to_database()
+    if db is not None:  # Corrected condition
+        # Read the resume
+        resume = read_resume(RESUME_FILE_PATH)
+        if resume:
+            resume_tokens = preprocess_text(resume)
+            job_descriptions = list(iterate_job_descriptions(db))
 
-    # Define keywords to increase and decrease similarity score
-    keywords_increase = ["python", "machine learning", "API", "pandas", "sklearn", "unity", "HTML", "Adobe", "Photoshop", "Python", "analysis", "Mongo", "MongoDB", "ML", "machine", "leanring", "ai", "noSQL", "within", "California", "Washington", "Ca"]
-    keywords_decrease = ["sales", "enrolled", "C++", "c++", "masters", "Masters", "node", "pursing", "MS", "PhD", "M.S"]
+            # Compare resume to job descriptions
+            sorted_job_descriptions = compare_resume_to_job_descriptions(resume_tokens, job_descriptions)
 
-    sorted_job_descriptions = compare_resume_to_job_descriptions(
-        resume_tokens, job_descriptions, keywords_increase, keywords_decrease)
+            # Sort job descriptions by similarity score
+            sorted_job_descriptions = sorted(sorted_job_descriptions, key=lambda x: x['similarity_score'], reverse=True)
 
-    sorted_job_descriptions = sorted(sorted_job_descriptions, key=lambda x: x['similarity_score'], reverse=True)
+            # Print job recommendations
+            counter = 0
+            for job in sorted_job_descriptions:
+                counter += 1
+                print(f"Job Entry Placement: {counter}")
+                print(f"  Job Name: {job['job_name']}")
+                print(f"  Similarity Score: {job['similarity_score']}")
+                print(f"  Salary: {job['salary']}")
+                print(f"  Location: {job['location']}")
+                print(f"  Company: {job['company']}")
+                print(f"  Job Link: {job['job_link']}")
+                print("Important Skills:")
+                for skill in job['skills']:
+                    print(f"    - {skill}")
 
-    for job in sorted_job_descriptions:
-        print("Job Details:")
-        print(f"  Job Name: {job['job_name']}")
-        print(f"  Company: {job['company']}")
-        print(f"  Location: {job['location']}")
-        print(f"  Salary: {job['salary']}")
-        print(f"  Similarity Score: {job['similarity_score']}")
-        print(f"  Job Link: {job['job_link']}")
-        print()
+                print()

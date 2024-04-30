@@ -22,7 +22,7 @@ def connectDataBase():
 def storeJobsInDB(jobs_list):
     try:
         db = connectDataBase()
-        collection = db.foundJobs
+        collection = db.foundJobsSecondSet
         for job_content in jobs_list:
             job_data = parseJobContent(job_content)
             if job_data:
@@ -103,13 +103,15 @@ def parseJobContent(job_content):
 def searchJobName(name, location):
     # finding information we want
     try:
+
         # opening up glassdoor and searching for our jobs
         driver.get(website_url)
+        time.sleep(3)  # we need a 12 second buffer between each new search at least to avoid exceeding rate limits per minute
         searchField = driver.find_element(By.XPATH, '//*[@id="searchBar-jobTitle"]')
         searchField.clear()
         searchField.send_keys(name)
 
-        time.sleep(2)
+        time.sleep(3)
 
         searchLocationField = driver.find_element(By.XPATH, '//*[@id="searchBar-location"]')
         searchLocationField.clear()
@@ -118,10 +120,29 @@ def searchJobName(name, location):
         searchField.send_keys(Keys.ENTER)
 
         time.sleep(3)
+        '''
+        jobFilterButton = driver.find_element(By.XPATH, '/html/body/div[3]/div[1]/div[3]/div[1]/div[1]/button')
+        jobFilterButton.click()
+
+        positionTypeButton = driver.find_element(By.XPATH, '/html/body/div[3]/div[1]/div[3]/div[1]/div[1]/div/div/div[12]/div[1]/button[1]')
+        positionTypeButton.click()
+
+        time.sleep(2)
+
+        entryLevelButton = driver.find_element(By.XPATH, '/html/body/div[3]/div[1]/div[3]/div[1]/div[1]/div/div/div[12]/div[2]/ul/li[3]/button')
+        entryLevelButton.click()
+
+        time.sleep(2)
+
+        applyEntryLevelButton = driver.find_element(By.XPATH, '/html/body/div[3]/div[1]/div[3]/div[1]/div[1]/div/div/div[15]/button[2]')
+        applyEntryLevelButton.click()
+
+        time.sleep(5)
+        '''
 
         salaryFilterButton = driver.find_element(By.XPATH, '//*[@id="app-navigation"]/div[3]/div[1]/div[2]/div[1]/button[1]')
         salaryFilterButton.click()
-        time.sleep(2)
+        time.sleep(1)
 
         # max salary input
         inputField = driver.find_element(By.XPATH, '//*[@id="maxSalaryInput"]')
@@ -133,7 +154,7 @@ def searchJobName(name, location):
         applyFilterButton = driver.find_element(By.XPATH, '//*[@id="app-navigation"]/div[3]/div[1]/div[2]/div[2]/div[4]/button')
         applyFilterButton.click()
 
-        time.sleep(3)
+        time.sleep(2)
 
         # open as many dynamically loaded job cards as possible (the loop)
         try:
@@ -142,10 +163,10 @@ def searchJobName(name, location):
             time.sleep(2)
             driver.execute_script("document.elementFromPoint(window.innerWidth - 1, window.innerHeight / 2).click();")
             time.sleep(2)
-            for item in range(0, 8):  # each iteration in this loop is 30 jobs found
+            for item in range(0, 12):  # each iteration in this loop is 30 jobs found
                 showMoreButton = driver.find_element(By.XPATH, '//*[@id="left-column"]/div[2]/div/button')
                 showMoreButton.click()
-                time.sleep(4)
+                time.sleep(1.5)
         except:
             print("error expanding job grab... perhaps not enough jobs in search")
 
@@ -180,16 +201,40 @@ website_url = "https://www.glassdoor.com/Job/index.htm"
 options = webdriver.ChromeOptions()
 driver = webdriver.Chrome(options=options)
 
-jobs1 = searchJobName("Junior Game Dev", "United States")
-jobs2 = searchJobName("Python Programmer", "United States")
-jobs3 = searchJobName("Junior Data Analyst", "United States")
 
-storeList = jobs1 + jobs2 + jobs3
+
+jobs1 = searchJobName("Software Engineering Intern", "United States")
+jobs2 = searchJobName("Entry-Level QA Tester", "United States")
+jobs3 = searchJobName("Junior Python Developer", "United States")
+jobs4 = searchJobName("Web Developer - Entry Level", "United States")
+jobs5 = searchJobName("Software Engineering Associate Entry Level", "United States")
+jobs6 = searchJobName("Junior Data Analyst", "United States")
+
+'''
+# Los Angeles
+jobs7 = searchJobName("IT Intern Entry Level", "Los Angeles")
+jobs8 = searchJobName("QA Test Intern Entry Level", "Los Angeles")
+jobs9 = searchJobName("Data Analyst Intern Entry Level", "Los Angeles")
+jobs10 = searchJobName("Game Design Intern Entry Level", "Los Angeles")
+
+# Washington
+jobs11 = searchJobName("IT Intern Entry Level", "Washington")
+jobs12 = searchJobName("QA Test Intern Entry Level", "Washington")
+jobs13 = searchJobName("Data Analyst Intern Entry Level", "Washington")
+jobs14 = searchJobName("Game Design Intern Entry Level", "Washington")
+
+# Remote
+jobs15 = searchJobName("2D Game Designer Entry Level", "Remote")
+jobs16 = searchJobName("Python Intern Entry Level", "Remote")
+jobs17 = searchJobName("QA Test Intern Entry Level", "Remote")
+'''
+
+storeList = jobs1 + jobs2 + jobs3 + jobs4 + jobs5 + jobs6
+# storeList = jobs7 + jobs8 + jobs9 + jobs10 + jobs11 + jobs12 + jobs13 + jobs14 + jobs15 + jobs16 + jobs17
 storeJobsInDB(storeList)
-for job in jobs2:
-    print(job)
 
-time.sleep(1000)
+
+time.sleep(500)
 
 driver.quit()
 

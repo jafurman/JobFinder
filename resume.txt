@@ -1,8 +1,8 @@
 
 •	Java/JavaScript/ Python/ C# (Unity)/C++/C/FORTRAN/HTML/CSS/JSON/XML
 •	SpringBoot/React/Overall API usage
-•	PostgresSQL/MongoDB/Minimal AWS
-•	Game Development/Information Retrieval/AI/ML/Data Science/CyberSecurity/Graphic Design/IoT/Environmental Technology
-•	Adobe Creative Cloud (Photoshop, Premiere Pro, After Effects, InDesign, etc.)
-selenium, keras, sklearn, nlp, pandas
+•	PostgresSQL/MongoDB
+•	Game Development/Information Retrieval/AI/ML/Data Science/Graphic Design/IoT/Environmental Technology
+•	Adobe Creative Cloud (Photoshop, Premiere Pro, After Effects, InDesign,
+"python", "machine learning", "API", "pandas", "sklearn", "unity", "HTML", "Adobe", "Photoshop", "Python", "MongoDB", "ML", "ai", "noSQL", "California", "Washington", "selenium"
 
