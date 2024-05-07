@@ -7,9 +7,12 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 # Define constants
 RESUME_FILE_PATH = "resume.txt"
-KEYWORDS_INCREASE = ["python", "machine learning", "API", "pandas", "sklearn", "unity", "HTML", "Adobe", "Photoshop", "Python", "MongoDB", "ML", "ai", "noSQL", "California", "Washington"]
+KEYWORDS_INCREASE = ["python", "machine learning", "API", "pandas", "sklearn", "unity", "HTML", "Adobe", "Photoshop",
+                     "Python", "MongoDB", "ML", "ai", "noSQL", "California", "Washington"]
 KEYWORDS_DECREASE = ["sales", "enrolled", "C++", "c++", "masters", "Masters", "node", "pursing", "MS", "PhD", "M.S"]
 SKILL_WEIGHT = 2
+
+
 
 # Function to connect to the database
 def connect_to_database():
@@ -29,6 +32,7 @@ def preprocess_text(text):
     tokens = [token.lemma_ for token in doc if not token.is_stop and token.is_alpha]
     return " ".join(tokens)
 
+
 # Function to read resume file
 def read_resume(file_path):
     try:
@@ -37,6 +41,7 @@ def read_resume(file_path):
     except Exception as e:
         print(f"Error reading the resume file: {e}")
         return None
+
 
 # Function to iterate over job descriptions
 def iterate_job_descriptions(db):
@@ -59,6 +64,7 @@ def iterate_job_descriptions(db):
     except Exception as e:
         traceback.print_exc()
         print("Error while iterating job descriptions.")
+
 
 # Function to compare resume to job descriptions
 def compare_resume_to_job_descriptions(resume_tokens, job_descriptions):
@@ -86,43 +92,51 @@ def compare_resume_to_job_descriptions(resume_tokens, job_descriptions):
             keyword_score_decrease = sum(1 for keyword in KEYWORDS_DECREASE if keyword in description_tokens)
 
             scaled_skill_similarity = skill_similarity * SKILL_WEIGHT
-            job['similarity_score'] = scores[sorted_job_descriptions.index(job)] + scaled_skill_similarity + keyword_score_increase - keyword_score_decrease
+            job['similarity_score'] = scores[sorted_job_descriptions.index(
+                job)] + scaled_skill_similarity + keyword_score_increase - keyword_score_decrease
 
         return sorted_job_descriptions
     except Exception as e:
         traceback.print_exc()
         print("Error while comparing resume to job descriptions.")
 
-# Main script
+
 if __name__ == "__main__":
-    # Connect to the database
     db = connect_to_database()
-    if db is not None:  # Corrected condition
-        # Read the resume
+    if db is not None:
         resume = read_resume(RESUME_FILE_PATH)
         if resume:
             resume_tokens = preprocess_text(resume)
             job_descriptions = list(iterate_job_descriptions(db))
-
-            # Compare resume to job descriptions
             sorted_job_descriptions = compare_resume_to_job_descriptions(resume_tokens, job_descriptions)
-
-            # Sort job descriptions by similarity score
-            sorted_job_descriptions = sorted(sorted_job_descriptions, key=lambda x: x['similarity_score'], reverse=True)
-
-            # Print job recommendations
+            sorted_job_descriptions = sorted(sorted_job_descriptions, key=lambda x: x['similarity_score'], reverse=False)
+            written_jobs = set()
+            with open('jobs.txt', 'w') as f:
+                for job in sorted_job_descriptions:
+                    if job['job_name'] not in written_jobs:
+                        f.write(f"Job Name: {job['job_name']}\n")
+                        f.write(f"  Similarity Score: {job['similarity_score']}\n")
+                        f.write(f"  Salary: {job['salary']}\n")
+                        f.write(f"  Location: {job['location']}\n")
+                        f.write(f"  Company: {job['company']}\n")
+                        f.write(f"  Job Link: {job['job_link']}\n")
+                        f.write("Important Skills:\n")
+                        for skill in job['skills']:
+                            f.write(f"    - {skill}\n")
+                        f.write("\n")
+                        written_jobs.add(job['job_name'])
             counter = 0
             for job in sorted_job_descriptions:
-                counter += 1
-                print(f"Job Entry Placement: {counter}")
-                print(f"  Job Name: {job['job_name']}")
-                print(f"  Similarity Score: {job['similarity_score']}")
-                print(f"  Salary: {job['salary']}")
-                print(f"  Location: {job['location']}")
-                print(f"  Company: {job['company']}")
-                print(f"  Job Link: {job['job_link']}")
-                print("Important Skills:")
-                for skill in job['skills']:
-                    print(f"    - {skill}")
-
-                print()
+                if job['job_name'] not in written_jobs:
+                    counter += 1
+                    print(f"Job Entry Placement: {counter}")
+                    print(f"  Job Name: {job['job_name']}")
+                    print(f"  Similarity Score: {job['similarity_score']}")
+                    print(f"  Salary: {job['salary']}")
+                    print(f"  Location: {job['location']}")
+                    print(f"  Company: {job['company']}")
+                    print(f"  Job Link: {job['job_link']}")
+                    print("Important Skills:")
+                    for skill in job['skills']:
+                        print(f"    - {skill}")
+                    print()

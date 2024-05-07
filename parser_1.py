@@ -24,7 +24,7 @@ def open_unique_job_links():
     try:
         db_source = connectDataBase()
         if db_source is not None:
-            found_jobs_collection = db_source.foundJobs
+            found_jobs_collection = db_source.foundJobsSecondSet
             for job in found_jobs_collection.find():
                 job_link = job.get('job_link')
                 if job_link:
