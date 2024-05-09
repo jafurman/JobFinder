@@ -1,4 +1,5 @@
 # Optimize imports
+import textwrap
 import traceback
 import pymongo
 import spacy
@@ -10,7 +11,7 @@ RESUME_FILE_PATH = "resume.txt"
 KEYWORDS_INCREASE = ["python", "machine learning", "API", "pandas", "sklearn", "unity", "HTML", "Adobe", "Photoshop",
                      "Python", "MongoDB", "ML", "ai", "noSQL", "California", "Washington"]
 KEYWORDS_DECREASE = ["sales", "enrolled", "C++", "c++", "masters", "Masters", "node", "pursing", "MS", "PhD", "M.S"]
-SKILL_WEIGHT = 2
+SKILL_WEIGHT = 1.1
 
 
 
@@ -46,7 +47,7 @@ def read_resume(file_path):
 # Function to iterate over job descriptions
 def iterate_job_descriptions(db):
     try:
-        job_details_collection = db.jobDetails
+        job_details_collection = db.completeListings
         for job in job_details_collection.find():
             full_description = job.get('full_description')
             if full_description:
@@ -56,8 +57,9 @@ def iterate_job_descriptions(db):
                     'location': job.get('location'),
                     'salary': job.get('salary'),
                     'description': preprocess_text(full_description),
-                    'job_link': job.get('job_link'),
-                    'skills': job.get('skills', [])  # Add skills list here
+                    'job_url': job.get('job_url'),
+                    'skills': job.get('skills', []), 
+                    'relevant_description': preprocess_text(job.get('new_information'))
                 }
             else:
                 print("No full description available for job ID:", job.get('_id'))
@@ -74,7 +76,7 @@ def compare_resume_to_job_descriptions(resume_tokens, job_descriptions):
         job_skills_tokens = [" ".join(job['skills']) for job in job_descriptions]
         job_skills_tfidf = tfidf_vectorizer.fit_transform(job_skills_tokens)
 
-        job_descriptions_tokens = [job['description'] for job in job_descriptions]
+        job_descriptions_tokens = [job['relevant_description'] for job in job_descriptions]
         job_descriptions_tfidf = tfidf_vectorizer.transform(job_descriptions_tokens)
 
         resume_tfidf = tfidf_vectorizer.transform([resume_tokens])
@@ -87,7 +89,7 @@ def compare_resume_to_job_descriptions(resume_tokens, job_descriptions):
         skills_similarity_scores = cosine_similarity(resume_tfidf, job_skills_tfidf)
 
         for job, skill_similarity in zip(sorted_job_descriptions, skills_similarity_scores[0]):
-            description_tokens = job['description'].split()
+            description_tokens = job['relevant_description'].split()
             keyword_score_increase = sum(1 for keyword in KEYWORDS_INCREASE if keyword in description_tokens)
             keyword_score_decrease = sum(1 for keyword in KEYWORDS_DECREASE if keyword in description_tokens)
 
@@ -111,7 +113,7 @@ if __name__ == "__main__":
             sorted_job_descriptions = compare_resume_to_job_descriptions(resume_tokens, job_descriptions)
             sorted_job_descriptions = sorted(sorted_job_descriptions, key=lambda x: x['similarity_score'], reverse=False)
             written_jobs = set()
-            with open('jobs.txt', 'w') as f:
+            with open('RankedJobs.txt', 'w') as f:
                 for job in sorted_job_descriptions:
                     if job['job_name'] not in written_jobs:
                         f.write(f"Job Name: {job['job_name']}\n")
@@ -119,10 +121,18 @@ if __name__ == "__main__":
                         f.write(f"  Salary: {job['salary']}\n")
                         f.write(f"  Location: {job['location']}\n")
                         f.write(f"  Company: {job['company']}\n")
-                        f.write(f"  Job Link: {job['job_link']}\n")
+                        f.write(f"  Job Link: {job['job_url']}\n")
                         f.write("Important Skills:\n")
                         for skill in job['skills']:
                             f.write(f"    - {skill}\n")
+                        f.write("  Important Info:\n")
+                        for line in job['relevant_description'].split("\n"):
+                            if len(line) > 60:
+                                lines = textwrap.wrap(line, width=60)
+                                for l in lines:
+                                    f.write(f"    {l}\n")
+                            else:
+                                f.write(f"    {line}\n")
                         f.write("\n")
                         written_jobs.add(job['job_name'])
             counter = 0
@@ -135,8 +145,16 @@ if __name__ == "__main__":
                     print(f"  Salary: {job['salary']}")
                     print(f"  Location: {job['location']}")
                     print(f"  Company: {job['company']}")
-                    print(f"  Job Link: {job['job_link']}")
+                    print(f"  Job Link: {job['job_url']}")
                     print("Important Skills:")
                     for skill in job['skills']:
                         print(f"    - {skill}")
+                    print("Important Info:")
+                    for line in job['relevant_description'].split("\n"):
+                        if len(line) > 60:
+                            lines = textwrap.wrap(line, width=60)
+                            for l in lines:
+                                print(f"    {l}")
+                        else:
+                            print(f"    {line}")
                     print()
