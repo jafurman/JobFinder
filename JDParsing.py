@@ -73,11 +73,7 @@ def extract_information(job_desc):
     if experience_level:
         relevant_information.append("".join(experience_level))
 
-    # Insert newline after every 100 characters
-    relevant_info_text = "\n".join(relevant_information)
-    relevant_info_with_newlines = "\n".join([relevant_info_text[i:i+100] for i in range(0, len(relevant_info_text), 100)])
-
-    return relevant_info_with_newlines
+    return "\n".join(relevant_information)
 
 def print_jobs():
     try:
