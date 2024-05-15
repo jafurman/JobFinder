@@ -148,7 +148,7 @@ def searchJobName(name, location):
         inputField = driver.find_element(By.XPATH, '//*[@id="maxSalaryInput"]')
         for _ in range(4):
             inputField.send_keys(Keys.BACKSPACE)
-        inputField.send_keys("80")
+        inputField.send_keys("90")
         time.sleep(2)
 
         applyFilterButton = driver.find_element(By.XPATH, '//*[@id="app-navigation"]/div[3]/div[1]/div[2]/div[2]/div[4]/button')
@@ -202,12 +202,12 @@ options = webdriver.ChromeOptions()
 driver = webdriver.Chrome(options=options)
 
 
-jobs1 = searchJobName("Software Engineering Intern", "United States")
-jobs2 = searchJobName("Machine Learning Intern", "United States")
-jobs4 = searchJobName("Junior Web Developer", "United States")
-jobs5 = searchJobName("Natural Language Processing", "United States")
-jobs6 = searchJobName("Junior Data Analyst", "United States")
-jobs7 = searchJobName("Computer Science Recent Graduate", "United States")
+jobs1 = searchJobName("Software Engineering Recent Graduate", "United States")
+jobs2 = searchJobName("Computer Science Intern", "United States")
+jobs4 = searchJobName("Software Engineering Intern", "United States")
+jobs5 = searchJobName("Junior Computer Science", "United States")
+jobs6 = searchJobName("Computer Science Recent Graduates", "United States")
+jobs7 = searchJobName("Junior Software Entry Level", "United States")
 
 '''
 # Los Angeles
@@ -228,7 +228,7 @@ jobs16 = searchJobName("Python Intern Entry Level", "Remote")
 jobs17 = searchJobName("QA Test Intern Entry Level", "Remote")
 '''
 
-storeList = jobs1 + jobs2 + jobs4 + jobs5 + jobs6 + jobs7
+storeList = jobs1 + jobs2 + jobs4 + jobs5+ jobs6 + jobs7
 # storeList = jobs7 + jobs8 + jobs9 + jobs10 + jobs11 + jobs12 + jobs13 + jobs14 + jobs15 + jobs16 + jobs17
 storeJobsInDB(storeList)
 
