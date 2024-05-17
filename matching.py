@@ -113,7 +113,7 @@ if __name__ == "__main__":
             sorted_job_descriptions = compare_resume_to_job_descriptions(resume_tokens, job_descriptions)
             sorted_job_descriptions = sorted(sorted_job_descriptions, key=lambda x: x['similarity_score'], reverse=False)
             written_jobs = set()
-            with open('RankedJobs.txt', 'w') as f:
+            with open('listOfJobs.txt', 'w') as f:
                 for job in sorted_job_descriptions:
                     if job['job_name'] not in written_jobs:
                         f.write(f"Job Name: {job['job_name']}\n")
